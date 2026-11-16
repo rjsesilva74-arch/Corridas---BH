@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>CORRIDAS BH — Piloto</title>
+<style>
+:root{--bg:#0c1319;--panel:#17232d;--panel2:#20313d;--text:#f4f7f9;--muted:#a9b8c2;--lime:#c7f36b;--line:#30434f;--danger:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:22px 18px 16px;background:linear-gradient(135deg,#14232d,#0c1319);border-bottom:1px solid var(--line)}
+.brand{font-weight:900;letter-spacing:1.5px;font-size:23px}.tag{color:var(--lime);font-size:12px;letter-spacing:1px;font-weight:700}
+main{max-width:680px;margin:auto;padding:16px 14px 40px}.notice{border:1px solid #65783d;background:#202c1b;color:#e7f6c7;padding:12px;border-radius:12px;font-size:13px;margin-bottom:14px}
+.switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.switch button,.btn{border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer}
+.switch button{background:var(--panel2);color:var(--muted)}.switch button.active,.btn.primary{background:var(--lime);color:#17210d}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+h1{font-size:22px;margin:4px 0 12px}h2{font-size:17px;margin:0 0 12px}p{color:var(--muted);line-height:1.45;margin:8px 0}
+label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}input,select{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:#0f1920;color:var(--text);font-size:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btn{width:100%;margin-top:12px}.btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.metric{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.metric:last-child{border:0}.metric span{color:var(--muted)}.money{font-size:25px;color:var(--lime);font-weight:900}
+.pill{display:inline-block;padding:5px 9px;border-radius:30px;background:#2b3a25;color:var(--lime);font-size:12px;font-weight:800}
+.hidden{display:none!important}.small{font-size:12px}.warning{color:#ffd28a}.success{color:var(--lime)}
+footer{text-align:center;color:#7f929e;font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<header><div class="tag">MOBILIDADE COM MAIS RESPEITO</div><div class="brand">CORRIDAS BH</div><div class="small" style="color:#a9b8c2">Protótipo de testes • versão inicial</div></header>
+<main>
+<div class="notice"><b>Ambiente de demonstração.</b> Corridas, localização, pagamentos e gravações ainda são simulados. Não use para transportar passageiros ou cobrar valores reais.</div>
+<div class="switch"><button id="passengerTab" class="active" onclick="setRole('passenger')">Sou passageiro</button><button id="driverTab" onclick="setRole('driver')">Sou motorista</button></div>
+
+<section id="passenger">
+<div class="card">
+<h1>Solicitar uma corrida</h1>
+<p>Faça uma simulação de preço para Belo Horizonte.</p>
+<label>Local de embarque</label><input id="origin" placeholder="Ex.: Praça Sete">
+<label>Destino</label><input id="destination" placeholder="Ex.: Savassi">
+<div class="grid">
+<div><label>Distância da corrida (km)</label><input id="km" type="number" min="0.1" step="0.1" value="10"></div>
+<div><label>Passageiros</label><select id="people"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+</div>
+<label>Período</label><select id="period"><option value="1.8">Tarifa normal — R$ 1,80/km</option><option value="2.8">Pico (simulação) — R$ 2,80/km</option></select>
+<button class="btn primary" onclick="calculate()">Calcular estimativa</button>
+<div id="quote" class="card hidden" style="margin-bottom:0">
+<div class="small">Estimativa total do passageiro</div><div class="money" id="total">R$ 0,00</div>
+<div class="metric"><span>Valor do motorista</span><b id="driverNet">—</b></div>
+<div class="metric"><span>Comissão da plataforma (12%)</span><b id="fee">—</b></div>
+<p class="small">Valor ilustrativo, arredondado para R$ 0,10 mais próximo. A tarifa final depende da distância real e do motorista designado.</p>
+<button class="btn secondary" onclick="requestRide()">Simular pedido de corrida</button>
+<div id="requestStatus" class="success small"></div>
+</div>
+</div>
+<div class="card"><h2>Segurança da viagem</h2><p>O projeto prevê botão de emergência, compartilhamento da viagem, aviso de gravação e canal de ocorrência. Gravação de áudio e vídeo ficará desativada até validação técnica, jurídica e de privacidade.</p></div>
+</section>
+
+<section id="driver" class="hidden">
+<div class="card">
+<h1>Painel do motorista</h1><span class="pill">Modo demonstração</span>
+<label>Seu nome</label><input id="driverName" placeholder="Nome do motorista">
+<label>Distância até o embarque (km)</label><input id="pickup" type="number" min="0" step="0.1" value="3">
+<label>Valor base da corrida (R$)</label><input id="base" type="number" min="0" step="0.1" value="54">
+<button class="btn primary" onclick="driverOffer()">Ver oferta simulada</button>
+<div id="offer" class="card hidden" style="margin-bottom:0">
+<h2>Nova oferta de corrida</h2>
+<div class="metric"><span>Adicional de busca</span><b id="pickupExtra">—</b></div>
+<div class="metric"><span>Você recebe</span><b class="success" id="earnings">—</b></div>
+<div class="metric"><span>Preço estimado ao passageiro</span><b id="passengerPrice">—</b></div>
+<button class="btn primary" onclick="accept()">Aceitar (simulação)</button>
+<button class="btn secondary" onclick="decline()">Recusar oferta</button>
+<div id="driverStatus" class="small success"></div>
+</div>
+</div>
+<div class="card"><h2>Proteção do motorista</h2><p>O projeto prevê registro de não pagamento, contestação pelo passageiro e bloqueio somente após análise/validação. Nesta versão não há cobrança nem bloqueio real.</p></div>
+</section>
+<footer>CORRIDAS BH • O motorista em primeiro lugar<br>Protótipo local — não conectado a servidor</footer>
+</main>
+<script>
+let lastQuote=null;
+const money=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const round10=n=>Math.round(n*10)/10;
+function setRole(role){
+ document.getElementById('passenger').classList.toggle('hidden',role!=='passenger');
+ document.getElementById('driver').classList.toggle('hidden',role!=='driver');
+ document.getElementById('passengerTab').classList.toggle('active',role==='passenger');
+ document.getElementById('driverTab').classList.toggle('active',role==='driver');
+}
+function calculate(){
+ const km=Math.max(0,Number(document.getElementById('km').value)||0);
+ const people=Number(document.getElementById('people').value);
+ const rate=Number(document.getElementById('period').value);
+ if(!km){alert('Informe uma distância válida.');return;}
+ const driver=km*people*rate, fee=driver*.12, total=round10(driver+fee);
+ lastQuote={driver,fee,total,km,people,rate};
+ document.getElementById('driverNet').textContent=money(driver);
+ document.getElementById('fee').textContent=money(fee);
+ document.getElementById('total').textContent=money(total);
+ document.getElementById('quote').classList.remove('hidden');
+ document.getElementById('requestStatus').textContent='';
+}
+function requestRide(){
+ if(!lastQuote)return;
+ document.getElementById('requestStatus').textContent='Pedido demonstrativo registrado apenas nesta tela. Nenhum motorista foi chamado.';
+}
+function driverOffer(){
+ const pickup=Math.max(0,Number(document.getElementById('pickup').value)||0);
+ const base=Math.max(0,Number(document.getElementById('base').value)||0);
+ const extra=Math.max(0,pickup-2);
+ const extraPay=extra*1;
+ const earnings=base+extraPay;
+ const price=round10(earnings*1.12);
+ document.getElementById('pickupExtra').textContent=money(extraPay)+' ('+extra.toFixed(1).replace('.',',')+' km excedentes)';
+ document.getElementById('earnings').textContent=money(earnings);
+ document.getElementById('passengerPrice').textContent=money(price);
+ document.getElementById('offer').classList.remove('hidden');
+ document.getElementById('driverStatus').textContent='';
+}
+function accept(){document.getElementById('driverStatus').textContent='Aceite simulado. Nenhuma corrida real foi iniciada.';}
+function decline(){document.getElementById('driverStatus').textContent='Oferta recusada na demonstração.';}
+</script>
+</body></html>
